@@ -11,6 +11,7 @@ class DB {
   Future<Database> getDB() async {
     if (_db != null) return _db!;
     _db = await _initDB('mis_rialitos.db');
+    await insertSampleData();
     return _db!;
   }
 
@@ -27,7 +28,7 @@ class DB {
         name TEXT NOT NULL,
         icon TEXT NOT NULL,
         balance REAL NOT NULL,
-        is_deleted INTEGER NOT NULL DEFAULT 0 CHECK (is_deleted IN (0,1)),
+        is_deleted INTEGER NOT NULL DEFAULT 0 CHECK (is_deleted IN (0,1))
       )
     ''');
     await db.execute('''
@@ -49,7 +50,7 @@ class DB {
         name TEXT NOT NULL,
         icon TEXT NOT NULL,
         monthly_budget REAL,
-        is_deleted INTEGER NOT NULL DEFAULT 0 CHECK (is_deleted IN (0,1)),
+        is_deleted INTEGER NOT NULL DEFAULT 0 CHECK (is_deleted IN (0,1))
       )
     ''');
 
@@ -59,7 +60,7 @@ class DB {
         name TEXT NOT NULL,
         icon TEXT NOT NULL,
         monthly_budget REAL,
-        is_deleted INTEGER NOT NULL DEFAULT 0 CHECK (is_deleted IN (0,1)),
+        is_deleted INTEGER NOT NULL DEFAULT 0 CHECK (is_deleted IN (0,1))
       )
     ''');
 
@@ -113,14 +114,14 @@ class DB {
     return await db.query('accounts');
   }
 
-  Future<int> updateBalanceToAccount(int id, double amount) async {
+  Future<int> updateBalanceToAccount(int accountId, double amount) async {
     final db = await getDB();
-    final account = await getAccount(id);
+    final account = await getAccount(accountId);
     return await db.update(
       'accounts',
       {'balance': account?['balance'] + amount},
       where: 'id = ?',
-      whereArgs: [id],
+      whereArgs: [accountId],
     );
   }
 
@@ -172,7 +173,11 @@ class DB {
 
   Future<Map<String, dynamic>?> getAccountTransaction(int id) async {
     final db = await getDB();
-    final result = await db.query('accounts', where: 'id = ?', whereArgs: [id]);
+    final result = await db.query(
+      'account_transactions',
+      where: 'id = ?',
+      whereArgs: [id],
+    );
     return result.first;
   }
 
@@ -200,7 +205,7 @@ class DB {
   }
 
   // ---------------- CATEGORÍAS ----------------
-  Future<int> createExpenseCategory(String name, String icon) async {
+  Future<int> createExpenseCategory(String name, {String? icon}) async {
     final db = await getDB();
     return await db.insert('expense_categories', {'name': name, 'icon': icon});
   }
@@ -371,5 +376,92 @@ class DB {
   Future close() async {
     final db = await getDB();
     await db.close();
+  }
+
+  Future<void> insertSampleData() async {
+    final db = await getDB();
+
+    // --------- CUENTAS ---------
+    int cuenta1 = await db.insert('accounts', {
+      'name': 'Efectivo',
+      'icon': '💵',
+      'balance': 1000.0,
+    });
+    int cuenta2 = await db.insert('accounts', {
+      'name': 'Banco',
+      'icon': '🏦',
+      'balance': 5000.0,
+    });
+
+    // --------- CATEGORÍAS DE GASTOS ---------
+    int gastoCat1 = await db.insert('expense_categories', {
+      'name': 'Alimentos',
+      'icon': '🍔',
+      'monthly_budget': 300.0,
+    });
+    int gastoCat2 = await db.insert('expense_categories', {
+      'name': 'Transporte',
+      'icon': '🚌',
+      'monthly_budget': 150.0,
+    });
+
+    // --------- CATEGORÍAS DE INGRESOS ---------
+    int ingresoCat1 = await db.insert('income_categories', {
+      'name': 'Salario',
+      'icon': '💼',
+      'monthly_budget': 0.0,
+    });
+    int ingresoCat2 = await db.insert('income_categories', {
+      'name': 'Freelance',
+      'icon': '🖥️',
+      'monthly_budget': 0.0,
+    });
+
+    // --------- GASTOS ---------
+    await db.insert('expenses', {
+      'category_id': gastoCat1,
+      'account_id': cuenta1,
+      'notes': 'Compra supermercado',
+      'amount': 120.0,
+      'date': DateTime.now().toIso8601String(),
+      'created_at': DateTime.now().toIso8601String(),
+    });
+
+    await db.insert('expenses', {
+      'category_id': gastoCat2,
+      'account_id': cuenta1,
+      'notes': 'Gasolina carro',
+      'amount': 50.0,
+      'date': DateTime.now().toIso8601String(),
+      'created_at': DateTime.now().toIso8601String(),
+    });
+
+    // --------- INGRESOS ---------
+    await db.insert('incomes', {
+      'category_id': ingresoCat1,
+      'account_id': cuenta2,
+      'notes': 'Salario mensual',
+      'amount': 2000.0,
+      'date': DateTime.now().toIso8601String(),
+      'created_at': DateTime.now().toIso8601String(),
+    });
+
+    await db.insert('incomes', {
+      'category_id': ingresoCat2,
+      'account_id': cuenta2,
+      'notes': 'Proyecto freelance',
+      'amount': 500.0,
+      'date': DateTime.now().toIso8601String(),
+      'created_at': DateTime.now().toIso8601String(),
+    });
+
+    // --------- TRANSACCIONES ENTRE CUENTAS ---------
+    await db.insert('account_transactions', {
+      'from_account_id': cuenta2,
+      'to_account_id': cuenta1,
+      'amount': 300.0,
+      'date': DateTime.now().toIso8601String(),
+      'description': 'Transferencia mensual',
+    });
   }
 }

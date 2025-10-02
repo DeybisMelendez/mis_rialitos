@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'screens/dashboard_screen.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
 void main() {
+  initializeDateFormatting('es_NI');
   runApp(const MisRialitosApp());
 }
 
@@ -9,8 +12,15 @@ class MisRialitosApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
-      home: Scaffold(body: Center(child: Text('Hello World!'))),
+    return MaterialApp(
+      title: 'Mis Rialitos',
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        primarySwatch: Colors.green,
+        visualDensity: VisualDensity.adaptivePlatformDensity,
+      ),
+      initialRoute: '/',
+      routes: {'/': (context) => const DashboardScreen()},
     );
   }
 }
