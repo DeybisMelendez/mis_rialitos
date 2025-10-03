@@ -36,7 +36,9 @@ class _DashboardScreenState extends State<DashboardScreen>
   Future<double> getTotalAccountsBalance() async {
     final accounts = await db.getAllAccounts();
     double total = 0;
-    for (var a in accounts) total += a['balance'] as double;
+    for (var a in accounts) {
+      total += a['balance'] as double;
+    }
     return total;
   }
 
@@ -133,12 +135,13 @@ class _DashboardScreenState extends State<DashboardScreen>
                 FutureBuilder<List<Map<String, dynamic>>>(
                   future: getMonthlyExpenses(),
                   builder: (context, snapshot) {
-                    if (!snapshot.hasData)
+                    if (!snapshot.hasData) {
                       return const Center(child: CircularProgressIndicator());
+                    }
                     final expenses = snapshot.data!;
                     double total = expenses.fold(
                       0,
-                      (sum, e) => sum + e['amount'] as double,
+                      (sum, e) => sum + e['amount'],
                     );
                     return Column(
                       children: [
@@ -150,7 +153,9 @@ class _DashboardScreenState extends State<DashboardScreen>
                               return ListTile(
                                 title: Text('${e['notes']}'),
                                 subtitle: Text(
-                                  '${DateFormat('dd/MM/yyyy').format(DateTime.parse(e['date']))}',
+                                  DateFormat(
+                                    'dd/MM/yyyy',
+                                  ).format(DateTime.parse(e['date'])),
                                 ),
                                 trailing: Text(formatCurrency(e['amount'])),
                                 onTap: () {
@@ -176,12 +181,13 @@ class _DashboardScreenState extends State<DashboardScreen>
                 FutureBuilder<List<Map<String, dynamic>>>(
                   future: getMonthlyIncomes(),
                   builder: (context, snapshot) {
-                    if (!snapshot.hasData)
+                    if (!snapshot.hasData) {
                       return const Center(child: CircularProgressIndicator());
+                    }
                     final incomes = snapshot.data!;
                     double total = incomes.fold(
                       0,
-                      (sum, i) => sum + i['amount'] as double,
+                      (sum, i) => sum + i['amount'],
                     );
                     return Column(
                       children: [
@@ -193,7 +199,9 @@ class _DashboardScreenState extends State<DashboardScreen>
                               return ListTile(
                                 title: Text('${i['notes']}'),
                                 subtitle: Text(
-                                  '${DateFormat('dd/MM/yyyy').format(DateTime.parse(i['date']))}',
+                                  DateFormat(
+                                    'dd/MM/yyyy',
+                                  ).format(DateTime.parse(i['date'])),
                                 ),
                                 trailing: Text(formatCurrency(i['amount'])),
                                 onTap: () {},
@@ -217,8 +225,9 @@ class _DashboardScreenState extends State<DashboardScreen>
                 FutureBuilder<List<Map<String, dynamic>>>(
                   future: getMonthlyTransactions(),
                   builder: (context, snapshot) {
-                    if (!snapshot.hasData)
+                    if (!snapshot.hasData) {
                       return const Center(child: CircularProgressIndicator());
+                    }
                     final transactions = snapshot.data!;
                     return ListView.builder(
                       itemCount: transactions.length,
@@ -227,7 +236,9 @@ class _DashboardScreenState extends State<DashboardScreen>
                         return ListTile(
                           title: Text('Monto: ${formatCurrency(t['amount'])}'),
                           subtitle: Text(
-                            '${DateFormat('dd/MM/yyyy').format(DateTime.parse(t['date']))}',
+                            DateFormat(
+                              'dd/MM/yyyy',
+                            ).format(DateTime.parse(t['date'])),
                           ),
                           onTap: () {},
                         );
